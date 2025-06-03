@@ -1,0 +1,35 @@
+<!-- templates/import.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Import Production Data</h6>
+    </div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                {{ form.excel_file.label_tag }}
+                {{ form.excel_file }}
+                {% if form.excel_file.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.excel_file.errors }}
+                </div>
+                {% endif %}
+                <small class="form-text text-muted">{{ form.excel_file.help_text }}</small>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{% url 'report_list' %}" class="btn btn-secondary me-md-2">
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    Import Data
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

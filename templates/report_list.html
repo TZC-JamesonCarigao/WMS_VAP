@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card card-primary card-outline">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title">Production Records</h3>
+        
+    </div>
+    <style>
+        .table thead th {
+            background-color: #000 !important;
+            color: #fff !important;
+        }
+    </style>
+    <div class="card-body">
+       <form method="get" class="mb-3">
+            <div class="row align-items-end g-2">
+                <!-- Start Date -->
+                <div class="col-md-3">
+                    <div class="form-group mb-0">
+                        <label for="start_date">From Date</label>
+                        <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date|default:'' }}">
+                    </div>
+                </div>
+                <!-- You can add more filter fields here if needed -->
+                <!-- End Date -->
+                <div class="col-md-3">
+                    <div class="form-group mb-0">
+                        <label for="end_date">To Date</label>
+                        <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date|default:'' }}">
+                    </div>
+                </div>
+
+                <!-- Filter and Clear Buttons -->
+                <div class="col-md-3 d-flex align-items-end gap-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                    <a href="{% url 'report_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                </div>
+
+                <!-- Add New and Export Buttons (Bottom Left Aligned) -->
+                <div class="col-md-3 d-flex align-items-end justify-content-end gap-2">
+                    <a href="{% url 'create' %}" class="btn btn-success btn-sm">
+                        <i class="fas fa-plus-circle"></i> Add New
+                    </a>
+                    <a href="{% url 'export_excel' %}?{% if start_date %}start_date={{ start_date }}&{% endif %}{% if end_date %}end_date={{ end_date }}{% endif %}" class="btn btn-success">
+                        <i class="fas fa-file-excel"></i> Export to Excel
+                    </a>
+                </div>
+            </div>
+        </form>
+
+
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover text-sm table-striped">
+                <thead class="thead-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Date</th>
+                        <th>Plant Location</th>
+                        <th>Shift</th>
+                        <th>Product</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Total</th>
+                        <th>Description</th>
+                        <th>Boiler Temp (°C)</th>
+                        <th>Oil Temp (°C)</th>
+                        <th>Output Temp (°C)</th>
+                        <th>Input Temp (°C)</th>
+                        <th>Source</th>
+                        <th>Stroke/Min</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in object_list %}
+                    <tr>
+                        <td>{{ record.ID }}</td>  
+                        <td>{{ record.Date }}</td>  
+                        <td>{{ record.get_PlantLoc_display }}</td>  
+                        <td>{{ record.get_Shift_display }}</td>  
+                        <td>{{ record.Product.Product }}</td>
+                        <td>{{ record.TimeStart|slice:":5"}}</td>  <!-- {{ record.TimeStart|time:"H:i" }} -->
+                        <td>{{ record.TimeEnd|slice:":5"}}</td>  <!-- {{ record.TimeEnd|time:"H:i" }} -->
+                        <td>{{ record.Total }}</td> 
+                        <td>{{ record.ProdMinDescrip.ProdMinDes }}</td> 
+                        <td>{{ record.BoilerTemp }}</td>  
+                        <td>{{ record.CookingOilTemp }}</td>  
+                        <td>{{ record.OutputTemp }}</td>  
+                        <td>{{ record.InputTemp }}</td>  
+                        <td>{{ record.Source.Source }}</td>
+                        <td>{{ record.FormaticStrokeMin }}</td> 
+                        <td>
+                            <a href="{% url 'edit' record.pk %}" class="btn btn-sm btn-primary" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'delete' record.pk %}" class="btn btn-sm btn-danger" title="Delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="16" class="text-center">No records found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if is_paginated %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-hidden="true">&laquo;</span>
+                </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }} <span class="sr-only">(current)</span></span>
+                    </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">{{ num }}</a>
+                    </li>
+                    {% elif num == 1 or num == page_obj.paginator.num_pages %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">{{ num }}</a>
+                    </li>
+                    {% elif forloop.first or forloop.last %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                        <span class="sr-only">Next</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-hidden="true">&raquo;</span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
